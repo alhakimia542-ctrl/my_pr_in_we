@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تطبيق أبو أمين لاكتشاف الخلايا السلاطانية</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to right, #00c6ff, #0072ff);
+        color: #fff;
+        text-align: center;
+        padding: 30px;
+    }
+    h1 {
+        margin-bottom: 10px;
+        font-size: 2rem;
+    }
+    img {
+        width: 120px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+        border: 3px solid #fff;
+    }
+    input[type="file"] {
+        margin: 20px 0;
+    }
+    button {
+        padding: 10px 20px;
+        background-color: #ff9800;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    button:hover {
+        background-color: #e68900;
+    }
+    #result {
+        margin-top: 20px;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+    <h1>تطبيق أبو أمين لاكتشاف الخلايا السلاطانية</h1>
+    <img src="YOUR_IMAGE_URL_HERE" alt="أبو أمين">
+    <form id="uploadForm">
+        <input type="file" id="fileInput" accept="image/*" required>
+        <br>
+        <button type="submit">تحليل الصورة</button>
+    </form>
+    <div id="result"></div>
+
+<script>
+document.getElementById("uploadForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    const fileInput = document.getElementById("fileInput");
+    if(fileInput.files.length === 0) return;
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerText = "جارٍ التحليل...";
+
+    try {
+        const response = await fetch("/predict", {
+            method: "POST",
+            body: formData
+        });
+        const data = await response.json();
+        if(data.error){
+            resultDiv.innerText = "حدث خطأ: " + data.error;
+        } else {
+            resultDiv.innerText = `النتيجة: ${data.label} (الاحتمال: ${data.score.toFixed(2)})`;
+        }
+    } catch(err){
+        resultDiv.innerText = "حدث خطأ أثناء الاتصال بالخادم.";
+    }
+});
+</script>
+</body>
+</html>
