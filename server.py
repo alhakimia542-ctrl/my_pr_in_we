@@ -7,10 +7,13 @@ import os
 app = Flask(__name__)
 
 # -----------------------------
-# ضع هنا مسار النموذج على سطح المكتب
-# مثال: "C:/Users/YourName/Desktop/final_skin_model.keras"
-MODEL_PATH = r"C:/Users/Owner/Desktop/final_skin_model.keras"
+# مسار النموذج داخل المشروع
+MODEL_PATH = "final_skin_model.keras"  # يجب أن يكون موجود في نفس المجلد مع server.py
 # -----------------------------
+
+# التأكد من أن الملف موجود
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(f"Model file not found: {MODEL_PATH}. Please ensure the file is in the project folder.")
 
 # تحميل النموذج
 model = tf.keras.models.load_model(MODEL_PATH)
@@ -38,5 +41,6 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # لجعل السيرفر متاح للآخرين على Render، نستخدم host="0.0.0.0"
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # لجعل السيرفر متاح للآخرين على Render، نستخدم host="0.0.0.0" و port من البيئة
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
