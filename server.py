@@ -3,19 +3,16 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # يسمح بالطلبات من المتصفح
 
-# -----------------------------
-# مسار النموذج داخل المشروع
-MODEL_PATH = "final_skin_model.keras"  # يجب أن يكون موجود في نفس المجلد مع server.py
-# -----------------------------
+MODEL_PATH = "final_skin_model.keras"
 
-# التأكد من أن الملف موجود
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model file not found: {MODEL_PATH}. Please ensure the file is in the project folder.")
 
-# تحميل النموذج
 model = tf.keras.models.load_model(MODEL_PATH)
 
 @app.route("/predict", methods=["POST"])
@@ -26,14 +23,12 @@ def predict():
     file = request.files["file"]
     
     try:
-        # فتح الصورة وتحويلها إلى مصفوفة NumPy
         img = Image.open(file).resize((128, 128))
         img = np.array(img)/255.0
         img = img.reshape(1, 128, 128, 3)
         
-        # التنبؤ بالنموذج
         pred = model.predict(img)[0][0]
-        label = "خلايا سلاطانية" if pred >= 0.5 else "طبيعي"
+        label = "خلايا سرطانية" if pred >= 0.5 else "طبيعي"
         
         return jsonify({"label": label, "score": float(pred)})
     
@@ -41,6 +36,5 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # لجعل السيرفر متاح للآخرين على Render، نستخدم host="0.0.0.0" و port من البيئة
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
